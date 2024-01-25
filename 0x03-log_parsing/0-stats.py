@@ -4,39 +4,49 @@ import sys
 
 
 def print_stats(total_size, status_codes):
-    """ function that print statistics """
-    print("File size: {}".format(total_size))
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print("{}: {}".format(code, status_codes[code]))
+    """ function that prints statistics about the log file """
+    print(f"File size: {total_size}")
+    for code in sorted(status_codes):
+        count = status_codes[code]
+        print(f"{code}: {count}")
 
 
 def parse_line(line, total_size, status_codes):
     """ function that parse a log line and update statistics """
-    tokens = line.split(" ")
-    if len(tokens) > 2:
-        status_code = tokens[-2]
-        if status_code.isnumeric():
-            total_size += int(tokens[-1])
-            if status_code in status_codes:
-                status_codes[status_code] += 1
-            else:
-                status_codes[status_code] = 1
-    return total_size, status_codes
+    try:
+        parts = line.split()
+        if len(parts) >= 7:
+            status_code = int(parts[-2])
+            file_size = int(parts[-1])
+            total_size += file_size
+
+            if status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
+                status_codes[status_code] = status_codes.get(
+                    status_code, 0) + 1
+
+        return total_size, status_codes
+    except ValueError:
+        return total_size, status_codes
 
 
-if __name__ == "__main__":
+def run():
+    """ the main function to run """
     total_size = 0
     status_codes = {}
+    line_count = 0
 
     try:
-        for i, line in enumerate(sys.stdin, 1):
+        for line in sys.stdin:
+            line_count += 1
             total_size, status_codes = parse_line(
-                    line.strip(), total_size, status_codes)
+                line, total_size, status_codes)
 
-            if i % 10 == 0:
+            if line_count % 10 == 0:
                 print_stats(total_size, status_codes)
 
     except KeyboardInterrupt:
         print_stats(total_size, status_codes)
-        raise
+
+
+if __name__ == "__main__":
+    run()
