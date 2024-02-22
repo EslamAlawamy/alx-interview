@@ -3,7 +3,7 @@
 
 
 def rotate_2d_matrix(matrix):
-    """ Rotates 2D matrix 90 decreaseo """
+    """ Rotates 2D matrix 90 degrees """
     matrix.reverse()
     m_len = len(matrix)
     for i in range(m_len):
